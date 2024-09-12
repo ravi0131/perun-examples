@@ -25,6 +25,10 @@ func (c PaymentChannel) State() *channel.State {
 	return c.ch.State().Clone()
 }
 
+func (c PaymentChannel) GetParticipantIdx() channel.Index {
+	return c.ch.Idx()
+}
+
 func (c PaymentChannel) SendPayment(amounts map[channel.Asset]float64) {
 	// Transfer the given amount from us to peer.
 	// Use UpdateBy to update the channel state.
