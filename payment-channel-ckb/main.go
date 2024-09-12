@@ -35,11 +35,13 @@ func SetLogFile(path string) {
 
 func main() {
 	SetLogFile("demo.log")
+	log.Println("\n\nStarting demo")
 	sudtOwnerLockArg, err := parseSUDTOwnerLockArg("./devnet/accounts/sudt-owner-lock-hash.txt")
 	if err != nil {
 		log.Fatalf("error getting SUDT owner lock arg: %v", err)
 	}
 	d, _, err := deployment.GetDeployment("./devnet/contracts/migrations/dev/", "./devnet/system_scripts", sudtOwnerLockArg)
+	log.Printf("deployment object: %v", d)
 	if err != nil {
 		log.Fatalf("error getting deployment: %v", err)
 	}
@@ -130,10 +132,10 @@ func main() {
 
 	//print balances before transaction
 
-	fmt.Println("Balances of Alice and Bob before transaction")
+	log.Println("Balances of Alice and Bob before transaction")
 	str := "'s account balance"
-	fmt.Println(alice.Name, str, alice.GetBalances())
-	fmt.Println(bob.Name, str, bob.GetBalances())
+	log.Println(alice.Name, str, alice.GetBalances())
+	log.Println(bob.Name, str, bob.GetBalances())
 
 	ckbAsset := asset.Asset{
 		IsCKBytes: true,
@@ -150,7 +152,7 @@ func main() {
 		}
 	*/
 
-	fmt.Println("Opening channel and depositing funds")
+	log.Println("Opening channel and depositing funds")
 	chAlice := alice.OpenChannel(bob.WireAddress(), bob.PeerID(), map[channel.Asset]float64{
 		&asset.Asset{
 			IsCKBytes: true,
@@ -159,51 +161,51 @@ func main() {
 	})
 	strAlice := "Alice"
 	strBob := "Bob"
-	fmt.Println(alice.Name, str, alice.GetBalances())
-	fmt.Println(bob.Name, str, bob.GetBalances())
+	log.Println(alice.Name, str, alice.GetBalances())
+	log.Println(bob.Name, str, bob.GetBalances())
 
-	fmt.Println("Alice sent proposal")
+	log.Println("Alice sent proposal")
 	chBob := bob.AcceptedChannel()
-	fmt.Println("Bob accepted proposal")
-	fmt.Println("Sending payments....")
+	log.Println("Bob accepted proposal")
+	log.Println("Sending payments....")
 
 	chAlice.SendPayment(map[channel.Asset]float64{
 		&ckbAsset: 10.0,
 	})
-	fmt.Println("Alice sent Bob a payment")
+	log.Println("Alice sent Bob a payment")
 	printAllocationBalances(chAlice, ckbAsset, strAlice)
 	printAllocationBalances(chBob, ckbAsset, strBob)
 
 	chBob.SendPayment(map[channel.Asset]float64{
 		&ckbAsset: 10.0,
 	})
-	fmt.Println("Bob sent Alice a payment")
+	log.Println("Bob sent Alice a payment")
 	printAllocationBalances(chAlice, ckbAsset, strAlice)
 	printAllocationBalances(chBob, ckbAsset, strBob)
 
 	chAlice.SendPayment(map[channel.Asset]float64{
 		&ckbAsset: 10.0,
 	})
-	fmt.Println("Alice sent Bob a payment")
+	log.Println("Alice sent Bob a payment")
 	printAllocationBalances(chAlice, ckbAsset, strAlice)
 	printAllocationBalances(chBob, ckbAsset, strBob)
 
-	fmt.Println("Payments completed")
+	log.Println("Payments completed")
 	printAllocationBalances(chAlice, ckbAsset, strAlice)
 	printAllocationBalances(chBob, ckbAsset, strBob)
 
-	fmt.Println("Skip Settling Channel and force client shutdown")
+	log.Println("Skip Settling Channel and force client shutdown")
 	//chAlice.Settle()
 
-	fmt.Println(alice.Name, str, alice.GetBalances())
-	fmt.Println(bob.Name, str, bob.GetBalances())
+	log.Println(alice.Name, str, alice.GetBalances())
+	log.Println(bob.Name, str, bob.GetBalances())
 
 	//cleanup
 	alice.Shutdown()
 	bob.Shutdown()
-	fmt.Println("Clients shutdown, exiting method")
+	log.Println("Clients shutdown, exiting method")
 
-	fmt.Println("Creating clients again to see if channels can be restored")
+	log.Println("Creating clients again to see if channels can be restored")
 	alice2, err := client.NewPaymentClient(
 		"Alice",
 		Network,
@@ -234,42 +236,42 @@ func main() {
 	if err != nil {
 		log.Fatalf("error creating bob's client: %v", err)
 	}
-	fmt.Println("Starting restoring channels")
+	log.Println("Starting restoring channels")
 	chansAlice := alice2.Restore(bob2.WireAddress(), bob2.PeerID())
-	fmt.Println("Alice's channel restored")
+	log.Println("Alice's channel restored")
 	chansBob := bob2.Restore(alice2.WireAddress(), alice2.PeerID())
-	fmt.Println("Alice and Bob's channels successfully restored")
+	log.Println("Bob's channels successfully restored")
 
 	// Print balances after transactions.
-	fmt.Println(alice.Name, str, alice.GetBalances())
-	fmt.Println(bob.Name, str, bob.GetBalances())
+	log.Println(alice.Name, str, alice.GetBalances())
+	log.Println(bob.Name, str, bob.GetBalances())
 
-	fmt.Println("Alice sending payment to Bob")
+	log.Println("Alice sending payment to Bob")
 	chansAlice[0].SendPayment(map[channel.Asset]float64{
 		&ckbAsset: 10.0,
 	})
-	fmt.Println("Bob sending payment to Alice")
+	log.Println("Bob sending payment to Alice")
 	chansBob[0].SendPayment(map[channel.Asset]float64{
 		&ckbAsset: 10.0,
 	})
 
 	chansAlice[0].Settle()
-	fmt.Println("Balances after settling channel")
-	fmt.Println(alice.Name, str, alice.GetBalances())
-	fmt.Println(bob.Name, str, bob.GetBalances())
+	log.Println("Balances after settling channel")
+	log.Println(alice.Name, str, alice.GetBalances())
+	log.Println(bob.Name, str, bob.GetBalances())
 
 }
 
 func printAllocationBalances(ch *client.PaymentChannel, asset asset.Asset, name string) {
 	chAlloc := ch.State().Allocation
 	//_assets := chAlloc.Assets
-	fmt.Println("Assets held by" + name)
+	log.Println("Assets held by" + name)
 	/*
 		for _, a := range _assets {
-			fmt.Println(a)
+			log.Println(a)
 		}
 	*/
-	fmt.Println(name + "'s allocation in channel: " + chAlloc.Balance(1, &asset).String())
+	log.Println(name + "'s allocation in channel: " + chAlloc.Balance(1, &asset).String())
 }
 
 func parseSUDTOwnerLockArg(pathToSUDTOwnerLockArg string) (string, error) {

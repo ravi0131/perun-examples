@@ -64,11 +64,12 @@ ckb-cli account list | grep -B 5 -A 4 "$GenCellOneAddress" > $ACCOUNTS_DIR/genes
 echo $GenCellTwoPK > privateKeyGenesisCells.txt
 echo -e '\n\n' | ckb-cli account import --privkey-path privateKeyGenesisCells.txt || true
 ckb-cli account list | grep -B 5 -A 4 "$GenCellTwoAddress" > $ACCOUNTS_DIR/genesis-2.txt
-rm privateKeyGenesisCells.txt
+#rm privateKeyGenesisCells.txt
 
 echo -e '\n\n' |  ckb-cli account new > $ACCOUNTS_DIR/miner.txt
 MINER_LOCK_ARG=$(cat $ACCOUNTS_DIR/miner.txt | awk '/lock_arg/ {print $2}')
 
+#TDOD: Add account for Ingrid
 create_account "alice"
 create_account "bob"
 

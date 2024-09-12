@@ -30,4 +30,4 @@ ckb-cli tx add-input --tx-file $FUNDINGTX --tx-hash $genesis_tx_hash --index $ge
 ckb-cli tx sign-inputs --add-signatures --tx-file $FUNDINGTX --from-account $genesis
 ckb-cli tx send --tx-file $FUNDINGTX
 ckb-cli tx info --tx-file $FUNDINGTX
-rm $FUNDINGTX
+#rm $FUNDINGTX

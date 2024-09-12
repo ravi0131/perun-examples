@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 
 	"perun.network/go-perun/channel"
@@ -34,8 +33,8 @@ func (c PaymentChannel) SendPayment(amounts map[channel.Asset]float64) {
 		peer := 1 - actor
 		//fmt.Println("Send payment handler called")
 		for a, amount := range amounts {
-			fmt.Println(a)
-			fmt.Println(amount)
+			// fmt.Println(a)
+			// fmt.Println(amount)
 			if amount < 0 {
 				continue
 			}

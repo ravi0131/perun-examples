@@ -1,6 +1,6 @@
 module perun.network/perun-ckb-demo
 
-go 1.17
+go 1.21
 
 require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0
@@ -111,4 +111,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/nervosnetwork/ckb-sdk-go/v2 v2.2.0 => github.com/perun-network/ckb-sdk-go/v2 v2.2.1-0.20230601140721-2bf596fddd80
+//replace github.com/nervosnetwork/ckb-sdk-go/v2 v2.2.0 => github.com/perun-network/ckb-sdk-go/v2 v2.2.1-0.20230601140721-2bf596fddd80
+replace github.com/nervosnetwork/ckb-sdk-go/v2 v2.2.0 => /home/mek/code/ckb/perun-ckb-sdk-go
+
+replace perun.network/perun-ckb-backend v0.0.0-20240514141411-35bdf3afa166 => /home/mek/code/ckb/perun-ckb-backend
