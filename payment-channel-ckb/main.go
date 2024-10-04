@@ -186,6 +186,17 @@ func main() {
 	// printAllocationBalances(chIngridBob, ckbAsset, "ingrid")
 	// printAllocationBalances(chBobIngrid, ckbAsset, "Ingrid")
 
-	log.Println("Demo Successful Exit")
+	log.Println("Opening virtual channel between Alkice and Bob")
+	indexMaps := [][]channel.Index{
+		{0, 1},
+		{0, 1},
+	}
+	parents := []channel.ID{
+		chAliceIngrid.State().ID,
+		chBobIngrid.State().ID,
+	}
+	alice.OpenVirtualChannel(ingrid.WireAddress(), parents, indexMaps, map[channel.Asset]float64{&ckbAsset: 10.0})
+	bob.AcceptedChannel()
 
+	log.Println("Demo Successful Exit")
 }

@@ -11,48 +11,109 @@ import (
 
 // HandleProposal is the callback for incoming channel proposals.
 func (p *PaymentClient) HandleProposal(prop client.ChannelProposal, r *client.ProposalResponder) {
-	lcp, err := func() (*client.LedgerChannelProposalMsg, error) {
-		// Ensure that we got a ledger channel proposal.
-		lcp, ok := prop.(*client.LedgerChannelProposalMsg)
-		if !ok {
-			return nil, fmt.Errorf("invalid proposal type: %T", p)
-		}
+	switch prop := prop.(type) {
+	case *client.LedgerChannelProposalMsg:
+		p.handleLedgerChannelProposal(prop, r)
+	case *client.VirtualChannelProposalMsg:
+		p.handleVirtualChannelProposal(prop, r)
+	default:
+		fmt.Errorf("invalid proposal type: %T", p)
+	}
+	// // Create a channel accept message and send it.
+	// accept := lcp.Accept(
+	// 	p.WalletAddress(),        // The Account we use in the channel.
+	// 	client.WithRandomNonce(), // Our share of the channel nonce.
+	// )
 
-		// Check that we have the correct number of participants.
-		if lcp.NumPeers() != 2 {
-			return nil, fmt.Errorf("invalid number of participants: %d", lcp.NumPeers())
-		}
-		// Check that the channel has the expected assets and funding balances.
-		for i, assetAlloc := range lcp.FundingAgreement {
-			if assetAlloc[0].Cmp(assetAlloc[1]) != 0 {
-				return nil, fmt.Errorf("invalid funding balance for asset %d: %v", i, assetAlloc)
-			}
+	// ch, err := r.Accept(context.TODO(), accept)
+	// if err != nil {
+	// 	log.Printf("Error accepting channel proposal: %v", err)
+	// 	return
+	//}
 
-		}
-		return lcp, nil
-	}()
-	if err != nil {
-		_ = r.Reject(context.TODO(), err.Error())
+	// //TODO: startWatching
+	// // Start the on-chain event watcher. It automatically handles disputes.
+	// p.startWatching(ch)
+
+	// // Store channel.
+	// p.channels <- newPaymentChannel(ch, lcp.InitBals.Clone().Assets)
+	// //p.AcceptedChannel()
+}
+
+func (p *PaymentClient) handleLedgerChannelProposal(prop client.ChannelProposal, r *client.ProposalResponder) {
+	// Ensure that we got a ledger channel proposal.
+	lcp, ok := prop.(*client.LedgerChannelProposalMsg)
+	if !ok {
+		fmt.Errorf("invalid proposal type: %T", p)
 	}
 
+	// Check that we have the correct number of participants.
+	if lcp.NumPeers() != 2 {
+		fmt.Errorf("invalid number of participants: %d", lcp.NumPeers())
+	}
+	// Check that the channel has the expected assets and funding balances.
+	for i, assetAlloc := range lcp.FundingAgreement {
+		if assetAlloc[0].Cmp(assetAlloc[1]) != 0 {
+			fmt.Errorf("invalid funding balance for asset %d: %v", i, assetAlloc)
+		}
+
+	}
 	// Create a channel accept message and send it.
 	accept := lcp.Accept(
 		p.WalletAddress(),        // The Account we use in the channel.
 		client.WithRandomNonce(), // Our share of the channel nonce.
 	)
+
 	ch, err := r.Accept(context.TODO(), accept)
 	if err != nil {
 		log.Printf("Error accepting channel proposal: %v", err)
 		return
 	}
 
-	//TODO: startWatching
 	// Start the on-chain event watcher. It automatically handles disputes.
 	p.startWatching(ch)
 
 	// Store channel.
 	p.channels <- newPaymentChannel(ch, lcp.InitBals.Clone().Assets)
 	//p.AcceptedChannel()
+}
+
+func (p *PaymentClient) handleVirtualChannelProposal(prop client.ChannelProposal, r *client.ProposalResponder) {
+	// Ensure that we got a virtual channel proposal.
+	vcp, ok := prop.(*client.VirtualChannelProposalMsg)
+	if !ok {
+		fmt.Errorf("invalid proposal type: %T", p)
+	}
+
+	// Check that we have the correct number of participants.
+	if vcp.NumPeers() != 2 {
+		fmt.Errorf("invalid number of participants: %d", vcp.NumPeers())
+	}
+	// Check that the channel has the expected assets and funding balances.
+	for i, assetAlloc := range vcp.FundingAgreement {
+		if assetAlloc[0].Cmp(assetAlloc[1]) != 0 {
+			fmt.Errorf("invalid funding balance for asset %d: %v", i, assetAlloc)
+		}
+	}
+
+	accept := vcp.Accept(
+		p.WalletAddress(),        // The Account we use in the channel.
+		client.WithRandomNonce(), // Our share of the channel nonce.
+	)
+
+	ch, err := r.Accept(context.TODO(), accept)
+	if err != nil {
+		log.Printf("Error accepting channel proposal: %v", err)
+		return
+	}
+
+	// Start the on-chain event watcher. It automatically handles disputes.
+	p.startWatching(ch)
+
+	// Store channel.
+	p.channels <- newPaymentChannel(ch, vcp.InitBals.Clone().Assets)
+	//p.AcceptedChannel()
+
 }
 
 // HandleUpdate is the callback for incoming channel updates.

@@ -259,3 +259,42 @@ func (c *PaymentClient) Restore(peer wire.Address, peerID string) []*PaymentChan
 
 	return paymentChannels
 }
+
+func (p *PaymentClient) OpenVirtualChannel(peer wire.Address, parents []channel.ID, indexMaps [][]channel.Index, amounts map[gpchannel.Asset]float64) *PaymentChannel {
+	participants := []wire.Address{p.WireAddress(), peer}
+	assets := make([]gpchannel.Asset, len(amounts))
+	i := 0
+	for a := range amounts {
+		assets[i] = a
+		i++
+	}
+	initAlloc := gpchannel.NewAllocation(2, assets...)
+
+	challengeDuration := uint64(10)
+
+	proposal, err := client.NewVirtualChannelProposal(
+		challengeDuration,
+		p.Account.Address(),
+		initAlloc,
+		participants,
+		parents,
+		indexMaps,
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	log.Println("Created Proposal for Virtual Channel")
+
+	// Send the proposal.
+	log.Println("Proposing Virtual Channel")
+	ch, err := p.PerunClient.ProposeChannel(context.TODO(), proposal)
+	if err != nil {
+		panic(err)
+	}
+
+	p.startWatching(ch)
+	log.Println("Started Watching for Virtual Channel")
+
+	return newPaymentChannel(ch, assets)
+}
